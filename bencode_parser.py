@@ -36,43 +36,43 @@ def tokenizer(bcode):
                 break
                 
 
-def builder(next, token):
+def builder(next_token, token):
     item = None
 
     if token == "s":
-        item = next()
+        item = next_token()
 
     elif token == "i":
-        item = int(next())
-        if next() != "e":
-            print "SyntaxError(item)"
+        item = int(next_token())
+        if next_token() != "e":
+            print "SyntaxError"
 
     elif token == "l":
         item = []
-        token = next()
+        token = next_token()
         while token != "e":
-            item.append(builder(next, token))
-            token = next()
+            item.append(builder(next_token, token))
+            token = next_token()
 
     elif token == "d":
         item = {}
-        token = next()
+        token = next_token()
         while token != "e":
-            key = builder(next, token)
-            token = next()
-            val = builder(next, token)
+            key = builder(next_token, token)
+            token = next_token()
+            val = builder(next_token, token)
             item[key] = val
-            token = next()
+            token = next_token()
             
     return item
 
 
 def decoded_bencode(bcode):
-    next = tokenizer(bcode).next
+    next_token = tokenizer(bcode).next
     while True:
         try:
-            token = next()
-            yield builder(next, token)
+            token = next_token()
+            yield builder(next_token, token)
         except StopIteration:
             break
 
