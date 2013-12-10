@@ -1,6 +1,16 @@
 #! /usr/bin/python
 
+class BcodeSyntaxError(Exception):
+
+    def __init__(self, msg):
+        Exception.__init__(self, msg) 
+
+    def __str__(self):
+        return "Invalid Bencode syntax found"
+
+
 def tokenizer(bcode):
+
     integer = ""
     pointer = 0
 
@@ -12,21 +22,23 @@ def tokenizer(bcode):
             yield char
             pointer += 1
             continue
-        
+
+        if not _is_int(char):
+            raise BcodeSyntaxError # int is the only option left
+
         while True:
-            if char not in ("e",":"): # match integer
-                integer += char # store char from integer
+            if  _is_int(char):  # match int
+                integer += char # store char from int
                 pointer += 1
                 char = bcode[pointer]
                 continue
             
-            if char == "e": # match end of integer
+            if char == "e": # match end of int
                 yield integer
                 yield "e"
                 pointer += 1
                 integer = ""
                 break
-
             if char == ":": # match start of string
                 yield "s"
                 pointer += 1
@@ -34,7 +46,16 @@ def tokenizer(bcode):
                 pointer += int(integer) # move pointer to end of string
                 integer = ""
                 break
-                
+            else:
+                raise BcodeSyntaxError  # "e" or ":" must come after int
+
+def _is_int(char):
+    try:
+        int(char)
+        return True
+    except:
+        return False
+
 
 def builder(next_token, token):
     item = None
@@ -45,7 +66,7 @@ def builder(next_token, token):
     elif token == "i":
         item = int(next_token())
         if next_token() != "e":
-            print "SyntaxError"
+            raise BcodeSyntaxError
 
     elif token == "l":
         item = []
