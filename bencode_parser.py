@@ -76,6 +76,7 @@ def decoded_bencode(bcode):
         except StopIteration:
             break
 
+
 if __name__ == "__main__":
     """ TEST """
     with open("/home/mooli/Downloads/crunchbang-11-20130506-amd64.iso.torrent", 
