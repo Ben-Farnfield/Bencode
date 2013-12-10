@@ -41,6 +41,7 @@ def tokenizer(bcode):
                 pointer += 1
                 integer = ""
                 break
+
             if char == ":": # match start of string
                 yield "s"
                 pointer += 1
@@ -50,6 +51,7 @@ def tokenizer(bcode):
                 break
             else:
                 raise BcodeSyntaxError  # "e" or ":" must come after int
+
 
 def _is_int(char):
     try:
