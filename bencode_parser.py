@@ -2,7 +2,7 @@
 
 import sys
 
-class BcodeSyntaxError(Exception):
+class BencodeSyntaxError(Exception):
     """ """
     def __init__(self, msg):
         Exception.__init__(self, msg) 
@@ -26,7 +26,7 @@ def tokenizer(bcode):
             continue
 
         if not _is_int(char):
-            raise BcodeSyntaxError # int is the only option left
+            raise BencodeSyntaxError # int is the only option left
 
         while True:
             if  _is_int(char):  # match int
@@ -50,7 +50,7 @@ def tokenizer(bcode):
                 integer = ""
                 break
             else:
-                raise BcodeSyntaxError  # "e" or ":" must come after int
+                raise BencodeSyntaxError  # "e" or ":" must come after int
 
 
 def _is_int(char):
@@ -72,7 +72,7 @@ def builder(next_token, token):
     elif token == "i":
         item = int(next_token())
         if next_token() != "e":
-            raise BcodeSyntaxError
+            raise BencodeSyntaxError
 
     elif token == "l":
         item = []
@@ -104,7 +104,7 @@ def decoded_bencode(bcode):
             yield builder(next_token, token)
         except StopIteration:
             break
-        except BcodeSyntaxError as e:
+        except BencodeSyntaxError as e:
             sys.stderr.write(str(e))
             raise
 
