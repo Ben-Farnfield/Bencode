@@ -3,7 +3,7 @@
 import sys
 
 class BcodeSyntaxError(Exception):
-
+    """ """
     def __init__(self, msg):
         Exception.__init__(self, msg) 
 
@@ -12,7 +12,7 @@ class BcodeSyntaxError(Exception):
 
 
 def tokenizer(bcode):
-
+    """ """
     integer = ""
     pointer = 0
 
@@ -54,6 +54,7 @@ def tokenizer(bcode):
 
 
 def _is_int(char):
+    """ Returns True if passed a string representing a valid int """
     try:
         int(char)
         return True
@@ -62,6 +63,7 @@ def _is_int(char):
 
 
 def builder(next_token, token):
+    """ """
     item = None
 
     if token == "s":
@@ -93,7 +95,9 @@ def builder(next_token, token):
 
 
 def decoded_bencode(bcode):
+    """ """
     next_token = tokenizer(bcode).next
+
     while True:
         try:
             token = next_token()
