@@ -1,5 +1,7 @@
 #! /usr/bin/python
 
+import sys
+
 class BcodeSyntaxError(Exception):
 
     def __init__(self, msg):
@@ -96,6 +98,9 @@ def decoded_bencode(bcode):
             yield builder(next_token, token)
         except StopIteration:
             break
+        except BcodeSyntaxError as e:
+            sys.stderr.write(str(e))
+            raise
 
 
 if __name__ == "__main__":
