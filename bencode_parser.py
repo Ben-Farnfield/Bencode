@@ -25,9 +25,6 @@ def tokenizer(bcode):
             pointer += 1
             continue
 
-        if not _is_int(char):
-            raise BencodeSyntaxError # int is the only option left
-
         while True:
             if  _is_int(char):  # match int
                 integer += char # store char from int
@@ -90,7 +87,9 @@ def builder(next_token, token):
             val = builder(next_token, token)
             item[key] = val
             token = next_token()
-            
+    else:
+        raise BencodeSyntaxError
+
     return item
 
 
