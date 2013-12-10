@@ -76,8 +76,10 @@ def decoded_bencode(bcode):
         except StopIteration:
             break
 
+if __name__ == "__main__":
+    """ TEST """
+    with open("/home/mooli/Downloads/crunchbang-11-20130506-amd64.iso.torrent", 
+              "r") as f:
+        dot_torrent = f.read()
 
-with open("/home/mooli/Downloads/crunchbang-11-20130506-amd64.iso.torrent", "r") as f:
-    dot_torrent = f.read()
-
-print list(item for item in decoded_bencode(dot_torrent))
+    print list(item for item in decoded_bencode(dot_torrent))
