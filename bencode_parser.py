@@ -2,7 +2,7 @@ import sys
 
 class BencodeSyntaxError(Exception):
     """ """
-    def __init__(self, msg):
+    def __init__(self, msg=""):
         Exception.__init__(self, msg) 
 
     def __str__(self):
@@ -45,7 +45,7 @@ def tokenizer(bcode):
                 integer = ""
                 break
             else:
-                raise BencodeSyntaxError  # "e" or ":" must come after int
+                raise BencodeSyntaxError  # char not in alphabet
 
 
 def _is_int(char):
