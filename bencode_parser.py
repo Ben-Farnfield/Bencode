@@ -100,6 +100,7 @@ def _build_dict(next_token):
         token = next_token()
     return built_dict
 
+
 def decoded_bencode(bcode):
     """ """
     next_token = tokenizer(bcode).next
