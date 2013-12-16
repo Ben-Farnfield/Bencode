@@ -59,37 +59,46 @@ def _is_int(char):
 
 def builder(next_token, token):
     """ """
-    item = None
-
-    if token == "s":
-        item = next_token()
-
-    elif token == "i":
-        item = int(next_token())
-        if next_token() != "e":
-            raise BencodeSyntaxError
-
-    elif token == "l":
-        item = []
-        token = next_token()
-        while token != "e":
-            item.append(builder(next_token, token))
-            token = next_token()
-
-    elif token == "d":
-        item = {}
-        token = next_token()
-        while token != "e":
-            key = builder(next_token, token)
-            token = next_token()
-            val = builder(next_token, token)
-            item[key] = val
-            token = next_token()
-    else:
+    builders = {"s" : _build_string,
+                "i" : _build_int,
+                "l" : _build_list,
+                "d" : _build_dict}
+    try:
+        return builders[token](next_token)
+    except KeyError:
         raise BencodeSyntaxError
 
-    return item
+def _build_string(next_token):
+    """ """
+    return next_token()
 
+def _build_int(next_token):
+    """ """
+    built_int = int(next_token())
+    if next_token() != "e":
+        raise BencodeSyntaxError
+    return built_int
+
+def _build_list(next_token):
+    """ """
+    built_list = []
+    token = next_token()
+    while token != "e":
+        built_list.append(builder(next_token, token))
+        token = next_token()
+    return built_list
+
+def _build_dict(next_token):
+    """ """
+    built_dict = {}
+    token = next_token()
+    while token != "e":
+        key = builder(next_token, token)
+        token = next_token()
+        val = builder(next_token, token)
+        built_dict[key] = val
+        token = next_token()
+    return built_dict
 
 def decoded_bencode(bcode):
     """ """
