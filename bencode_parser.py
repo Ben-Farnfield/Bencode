@@ -88,16 +88,22 @@ def _build_dict(next_token):
     return built_dict
 
 
-def decoded_bencode(bcode):
-    """ """
+# Function to decode a bencoded string
+#
+# Arguments:
+#           bcode       string containing bencoded data
+# Yield:
+#           Yields one data object for each call to next(). These data 
+#           objects can be strings, integers, lists and dictionaries.
+#
+def decode(bcode):
     next_token = tokenizer(bcode).next
 
     while True:
         try:
             token = next_token()
-            yield builder(next_token, token)
+            yield builder(token, next_token)
         except StopIteration:
             break
         except BencodeSyntaxError as e:
-            sys.stderr.write(str(e))
             raise
