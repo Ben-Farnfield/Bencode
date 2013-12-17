@@ -42,7 +42,7 @@ class TestBuilder(unittest.TestCase):
 
     def test_builder_works(self):
         self.next_token = tokenizer("d4:key1l4:val14:val2i10eee").next 
-        self.result = builder(self.next_token, self.next_token())
+        self.result = builder(self.next_token(), self.next_token)
         self.assertEqual({"key1":["val1", "val2", 10]}, self.result)
 
 
