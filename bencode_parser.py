@@ -1,3 +1,4 @@
+import re
 import sys
 
 class BencodeSyntaxError(Exception):
@@ -10,43 +11,22 @@ class BencodeSyntaxError(Exception):
 
 
 def tokenizer(bcode):
-    """ """
-    integer = ""
+    match = re.compile(r"([ield])|(?P<str_len>\d+):|(-?\d+)").match
     pointer = 0
-
     while pointer < len(bcode):
+        m = match(bcode, pointer)
+        e = m.end(m.lastindex)
 
-        char = bcode[pointer]
-        
-        if char in ("i","d","l","e"): # match all basic tags
-            yield char
-            pointer += 1
-            continue
-
-        while True:
-            if  _is_int(char):  # match int
-                integer += char # store char from int
-                pointer += 1
-                char = bcode[pointer]
-                continue
-            
-            if char == "e": # match end of int
-                yield integer
-                yield "e"
-                pointer += 1
-                integer = ""
-                break
-
-            if char == ":": # match start of string
-                yield "s"
-                pointer += 1
-                yield bcode[pointer:pointer+int(integer)] # extract string
-                pointer += int(integer) # move pointer to end of string
-                integer = ""
-                break
-            else:
-                raise BencodeSyntaxError  # char not in alphabet
-
+        if m.lastindex == 2:
+            yield "s"
+            str_end = e + int(m.group("str_len"))
+            yield bcode[e:str_end]
+            pointer = str_end
+        elif m.lastindex in (1, 3):
+            yield m.group(m.lastindex)
+            pointer = e
+        else:
+            raise BencodeSyntaxError
 
 def _is_int(char):
     """ Returns True if passed a string representing a valid int """
