@@ -12,29 +12,25 @@ class BencodeSyntaxError(Exception):
 
 def tokenizer(bcode):
     match = re.compile(r"([ield])|(?P<str_len>\d+):|(-?\d+)").match
+
     pointer = 0
     while pointer < len(bcode):
         m = match(bcode, pointer)
+
+        if m is None:
+            raise BencodeSyntaxError
+
         e = m.end(m.lastindex)
 
         if m.lastindex == 2:
             yield "s"
-            str_end = e + int(m.group("str_len"))
-            yield bcode[e:str_end]
+            str_start = e + 1
+            str_end = str_start + int(m.group("str_len"))
+            yield bcode[str_start:str_end]
             pointer = str_end
-        elif m.lastindex in (1, 3):
+        else:
             yield m.group(m.lastindex)
             pointer = e
-        else:
-            raise BencodeSyntaxError
-
-def _is_int(char):
-    """ Returns True if passed a string representing a valid int """
-    try:
-        int(char)
-        return True
-    except:
-        return False
 
 
 def builder(next_token, token):
