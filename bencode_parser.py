@@ -10,6 +10,14 @@ class BencodeSyntaxError(Exception):
         return "Invalid Bencode syntax found"
 
 
+# Function to tokenize a bencoded string
+#
+# Arguments:
+#           bcode       string containing bencoded data
+# Yield:
+#           Yields one token for each call to next(). These tokens are 
+#           'i' 'e' 'l' 'd' integer or string.
+#
 def tokenizer(bcode):
     match = re.compile(r"([ield])|(?P<str_len>\d+):|(-?\d+)").match
 
@@ -24,7 +32,7 @@ def tokenizer(bcode):
 
         if m.lastindex == 2:
             yield "s"
-            str_start = e + 1
+            str_start = e + 1 # move pointer passed ':'
             str_end = str_start + int(m.group("str_len"))
             yield bcode[str_start:str_end]
             pointer = str_end
@@ -34,7 +42,6 @@ def tokenizer(bcode):
 
 
 def builder(next_token, token):
-    """ """
     builders = {"s" : _build_string,
                 "i" : _build_int,
                 "l" : _build_list,
