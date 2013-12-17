@@ -41,7 +41,15 @@ def tokenizer(bcode):
             pointer = e
 
 
-def builder(next_token, token):
+# Function to build python data types from bencode tokens
+#
+# Arguments:
+#           token       token representing the data type to be built
+#           next_token  tokenizer next() function
+# Return:
+#           Returns a fully built python data object.
+#
+def builder(token, next_token):
     builders = {"s" : _build_string,
                 "i" : _build_int,
                 "l" : _build_list,
@@ -52,33 +60,29 @@ def builder(next_token, token):
         raise BencodeSyntaxError
 
 def _build_string(next_token):
-    """ """
     return next_token()
 
 def _build_int(next_token):
-    """ """
     built_int = int(next_token())
     if next_token() != "e":
         raise BencodeSyntaxError
     return built_int
 
 def _build_list(next_token):
-    """ """
     built_list = []
     token = next_token()
     while token != "e":
-        built_list.append(builder(next_token, token))
+        built_list.append(builder(token, next_token))
         token = next_token()
     return built_list
 
 def _build_dict(next_token):
-    """ """
     built_dict = {}
     token = next_token()
     while token != "e":
-        key = builder(next_token, token)
+        key = builder(token, next_token)
         token = next_token()
-        val = builder(next_token, token)
+        val = builder(token, next_token)
         built_dict[key] = val
         token = next_token()
     return built_dict
