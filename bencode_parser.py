@@ -22,14 +22,12 @@ class BencodeSyntaxError(Exception):
                          "".format(self._bcode[self._pointer-3:
                                                self._pointer+4],
                                    error_type)
-
         elif source == BencodeSyntaxError.BUILDER:
             self._token = args[0]
             self._msg = ("\n    {}"
                          "\n    ^"
                          "\nBencodeSyntaxError: {}"
                          "".format(self._token, error_type))
-
         else:
             raise Exception("Invalid source for BencodeSyntaxError")
 
