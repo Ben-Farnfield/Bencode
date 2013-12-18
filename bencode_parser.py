@@ -5,7 +5,9 @@ class BencodeSyntaxError(Exception):
     BUILDER = 1
 
     NOT_IN_ALPHABET = "Token not in alphabet"
-
+    INT_MUST_FOLLOW_I = "Integer must follow 'i' token"
+    MUST_END_WITH_E = "Must end with 'e' token"
+    KEY_VAL_PAIR = "Dictionary must have one value per key"
 
     def __init__(self, source, error_type, *args):
         Exception.__init__(self, "BencodeSyntaxError") 
@@ -19,8 +21,7 @@ class BencodeSyntaxError(Exception):
             self._msg = ("\n    {}"
                          "\n       ^"
                          "\nBencodeSyntaxError: {}"
-                         "".format(self._bcode[self._pointer-3:
-                                               self._pointer+4],
+                         "".format(self._bcode[self._pointer-3:self._pointer+4],
                                    error_type)
         elif source == BencodeSyntaxError.BUILDER:
             self._token = args[0]
@@ -29,7 +30,7 @@ class BencodeSyntaxError(Exception):
                          "\nBencodeSyntaxError: {}"
                          "".format(self._token, error_type))
         else:
-            raise Exception("Invalid source for BencodeSyntaxError")
+            self._msg = "BencodeSyntaxError"
 
     def __str__(self):
         return self._msg
@@ -93,9 +94,11 @@ def _build_int(next_token):
     try:
         built_int = int(next_token())
     except ValueError:
-        raise BencodeSyntaxError # i must be followed by integer
+        raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                 BencodeSyntaxError.INT_MUST_FOLLOW_I, token)
     if next_token() != "e":
-        raise BencodeSyntaxError # integer must be followed by e
+        raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                 BencodeSyntaxError.MUST_END_WITH_E, token)
     return built_int
 
 def _build_list(next_token):
@@ -106,7 +109,8 @@ def _build_list(next_token):
             built_list.append(builder(token, next_token))
             token = next_token()
     except StopIteration:
-        raise BencodeSyntaxError # l must be ended by e
+        raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                 BencodeSyntaxError.MUST_END_WITH_E, token)
     return built_list
 
 def _build_dict(next_token):
@@ -117,12 +121,15 @@ def _build_dict(next_token):
             key = builder(token, next_token)
             token = next_token()
             if token == "e":
-                raise BencodeSyntaxError # must have a key value pair
+                raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                         BencodeSyntaxError.KEY_VAL_PAIR,
+                                         token)
             val = builder(token, next_token)
             built_dict[key] = val
             token = next_token()
     except StopIteration:
-        raise BencodeSyntaxError # d must be ended by e
+        raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                 BencodeSyntaxError.MUST_END_WITH_E, token)
     return built_dict
 
 
