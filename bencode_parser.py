@@ -1,15 +1,26 @@
 import re
 
 class BencodeSyntaxError(Exception):
-    def __init__(self, *args):
-        Exception.__init__(self, "Invalid syntax found") 
+	TOKENIZER = 0
+	BUILDER = 1
+
+	ALPHABET = "Token not in alphabet"
+
+
+    def __init__(self, source, error_type, *args):
+        Exception.__init__(self, "BencodeSyntaxError") 
+
         self.args = [a for a in args]
-        self._bcode = self.args[0]
-        self._pointer = self.args[1]
-        self._msg = ("\nBencodeSyntaxError: ... {0}{1} ..."
-                     "\n                           ^"
-                     "".format(self._bcode[self._pointer-3 : self._pointer], 
-                               self._bcode[self._pointer : self._pointer+4]))  
+        self.error_type = error_type
+
+		if source == TOKENIZER:
+            self._bcode = self.args[0]
+            self._pointer = self.args[1]
+            self._msg = ("\nBencodeSyntaxError: ... {} ..."
+                         "\n                           ^"
+						 "\n" + self.error_type +
+						 "".format(self._bcode[self._pointer-3:
+								               self._pointer+4], 
 
     def __str__(self):
         return self._msg
@@ -64,34 +75,45 @@ def builder(token, next_token):
     try:
         return builders[token](next_token)
     except KeyError:
-        raise BencodeSyntaxError
+        raise BencodeSyntaxError # token not in alphabet
 
 def _build_string(next_token):
     return next_token()
 
 def _build_int(next_token):
-    built_int = int(next_token())
+	try:
+	    built_int = int(next_token())
+	except ValueError:
+		raise BencodeSyntaxError # i must be followed by integer
     if next_token() != "e":
-        raise BencodeSyntaxError
+        raise BencodeSyntaxError # integer must be followed by e
     return built_int
 
 def _build_list(next_token):
     built_list = []
-    token = next_token()
-    while token != "e":
-        built_list.append(builder(token, next_token))
-        token = next_token()
+	try:
+		token = next_token()
+		while token != "e":
+			built_list.append(builder(token, next_token))
+            token = next_token()
+	except StopIteration:
+		raise BencodeSyntaxError # l must be ended by e
     return built_list
 
 def _build_dict(next_token):
     built_dict = {}
-    token = next_token()
-    while token != "e":
-        key = builder(token, next_token)
-        token = next_token()
-        val = builder(token, next_token)
-        built_dict[key] = val
-        token = next_token()
+	try:
+	    token = next_token()
+        while token != "e":
+            key = builder(token, next_token)
+            token = next_token()
+			if token == "e":
+			    raise BencodeSyntaxError # must have a key value pair
+            val = builder(token, next_token)
+            built_dict[key] = val
+            token = next_token()
+	except StopIteration:
+	    raise BencodeSyntaxError # d must be ended by e
     return built_dict
 
 
