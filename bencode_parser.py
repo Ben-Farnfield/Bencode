@@ -1,32 +1,41 @@
 import re
 
 class BencodeSyntaxError(Exception):
-	TOKENIZER = 0
-	BUILDER = 1
+    TOKENIZER = 0
+    BUILDER = 1
 
-	ALPHABET = "Token not in alphabet"
+    NOT_IN_ALPHABET = "Token not in alphabet"
 
 
     def __init__(self, source, error_type, *args):
         Exception.__init__(self, "BencodeSyntaxError") 
 
-        self.args = [a for a in args]
+        self.source = source
         self.error_type = error_type
 
-		if source == TOKENIZER:
-            self._bcode = self.args[0]
-            self._pointer = self.args[1]
-            self._msg = ("\nBencodeSyntaxError: ... {} ..."
-                         "\n                           ^"
-						 "\n" + self.error_type +
-						 "".format(self._bcode[self._pointer-3:
-								               self._pointer+4], 
+        if source == BencodeSyntaxError.TOKENIZER:
+            self._bcode = args[0]
+            self._pointer = args[1]
+            self._msg = ("\n    {}"
+                         "\n       ^"
+                         "\nBencodeSyntaxError: {}"
+                         "".format(self._bcode[self._pointer-3:
+                                               self._pointer+4],
+                                   error_type)
+
+        elif source == BencodeSyntaxError.BUILDER:
+            self._token = args[0]
+            self._msg = ("\n    {}"
+                         "\n    ^"
+                         "\nBencodeSyntaxError: {}"
+                         "".format(self._token, error_type))
+
+        else:
+            raise Exception("Invalid source for BencodeSyntaxError")
 
     def __str__(self):
         return self._msg
 
-# output: ... i10l4: ...
-#                ^-- Invalid Bencode syntax
 
 # Function to tokenize a bencoded string
 #
@@ -44,8 +53,9 @@ def tokenizer(bcode):
         m = match(bcode, pointer)
 
         if m is None:
-            raise BencodeSyntaxError(bcode, pointer)
-
+            raise BencodeSyntaxError(BencodeSyntaxError.TOKENIZER,
+                                     BencodeSyntaxError.NOT_IN_ALPHABET,
+                                     bcode, pointer)
         e = m.end(m.lastindex)
 
         if m.lastindex == 2:
@@ -75,45 +85,46 @@ def builder(token, next_token):
     try:
         return builders[token](next_token)
     except KeyError:
-        raise BencodeSyntaxError # token not in alphabet
+        raise BencodeSyntaxError(BencodeSyntaxError.BUILDER,
+                                 BencodeSyntaxError.NOT_IN_ALPHABET, token)
 
 def _build_string(next_token):
     return next_token()
 
 def _build_int(next_token):
-	try:
-	    built_int = int(next_token())
-	except ValueError:
-		raise BencodeSyntaxError # i must be followed by integer
+    try:
+        built_int = int(next_token())
+    except ValueError:
+        raise BencodeSyntaxError # i must be followed by integer
     if next_token() != "e":
         raise BencodeSyntaxError # integer must be followed by e
     return built_int
 
 def _build_list(next_token):
     built_list = []
-	try:
-		token = next_token()
-		while token != "e":
-			built_list.append(builder(token, next_token))
+    try:
+        token = next_token()
+        while token != "e":
+            built_list.append(builder(token, next_token))
             token = next_token()
-	except StopIteration:
-		raise BencodeSyntaxError # l must be ended by e
+    except StopIteration:
+        raise BencodeSyntaxError # l must be ended by e
     return built_list
 
 def _build_dict(next_token):
     built_dict = {}
-	try:
-	    token = next_token()
+    try:
+        token = next_token()
         while token != "e":
             key = builder(token, next_token)
             token = next_token()
-			if token == "e":
-			    raise BencodeSyntaxError # must have a key value pair
+            if token == "e":
+                raise BencodeSyntaxError # must have a key value pair
             val = builder(token, next_token)
             built_dict[key] = val
             token = next_token()
-	except StopIteration:
-	    raise BencodeSyntaxError # d must be ended by e
+    except StopIteration:
+        raise BencodeSyntaxError # d must be ended by e
     return built_dict
 
 
