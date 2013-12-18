@@ -29,13 +29,10 @@ class TestBencodeTokenizer(unittest.TestCase):
         self.assertEqual("d", self.next_token())
         self.assertEqual("e", self.next_token())
 
-    def test_raise_exception_if_char_not_in_alphabet(self):
-        self.next_token = tokenizer("a").next
-        try:
-            self.assertRaises(BencodeSyntaxError, self.next_token())
-        except BencodeSyntaxError:
-            pass
-
+    def test_raise_exception_if_token_not_in_alphabet(self):
+        with self.assertRaises(BencodeSyntaxError) as context:
+            tokenizer("a").next()
+            self.assertEqual()
     # Test to check for non-ASCII chars
 
 class TestBuilder(unittest.TestCase):
@@ -45,6 +42,20 @@ class TestBuilder(unittest.TestCase):
         self.result = builder(self.next_token(), self.next_token)
         self.assertEqual({"key1":["val1", "val2", 10]}, self.result)
 
+    def test_int(self):
+        pass
+
+    def test_str(self):
+        pass
+
+    def test_list(self):
+        pass
+
+    def test_dict(self):
+        pass
+
+    def test_raise_exception_if_token_not_in_alphabet(self):
+        pass
 
 if __name__=="__main__":
     unittest.main()
