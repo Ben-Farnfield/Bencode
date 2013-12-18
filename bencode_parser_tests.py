@@ -30,9 +30,18 @@ class TestBencodeTokenizer(unittest.TestCase):
         self.assertEqual("e", self.next_token())
 
     def test_raise_exception_if_token_not_in_alphabet(self):
-        with self.assertRaises(BencodeSyntaxError) as context:
-            tokenizer("a").next()
-            self.assertEqual()
+        self.token = tokenizer("i10ea4:val1")
+        try:
+            for tok in self.token:
+                pass
+        except BencodeSyntaxError as e:
+            print str(e)
+            pass
+        except Exception as e:
+            self.fail("Unexpected exception thrown: " + repr(e))
+        else:
+            self.fail("Expected exception not thrown")
+
     # Test to check for non-ASCII chars
 
 class TestBuilder(unittest.TestCase):

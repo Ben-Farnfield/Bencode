@@ -1,12 +1,21 @@
 import re
 
 class BencodeSyntaxError(Exception):
-    def __init__(self, msg=""):
-        Exception.__init__(self, msg) 
+    def __init__(self, *args):
+        Exception.__init__(self, "Invalid syntax found") 
+        self.args = [a for a in args]
+        self._bcode = self.args[0]
+        self._pointer = self.args[1]
+        self._msg = ("\nBencodeSyntaxError: ... {0}{1} ..."
+                     "\n                           ^"
+                     "".format(self._bcode[self._pointer-3 : self._pointer], 
+                               self._bcode[self._pointer : self._pointer+4]))  
 
     def __str__(self):
-        return "Invalid Bencode syntax found"
+        return self._msg
 
+# output: ... i10l4: ...
+#                ^-- Invalid Bencode syntax
 
 # Function to tokenize a bencoded string
 #
@@ -24,7 +33,7 @@ def tokenizer(bcode):
         m = match(bcode, pointer)
 
         if m is None:
-            raise BencodeSyntaxError
+            raise BencodeSyntaxError(bcode, pointer)
 
         e = m.end(m.lastindex)
 
