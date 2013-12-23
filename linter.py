@@ -26,14 +26,6 @@ def val_bstr(bcode, pointer):
 
 def val_blist(bcode, pointer):
 
-    table = {'A' : {'l':'B'},
-             'B' : {'bint':'C','bstr':'D','blist':'E','bdict':'F'},
-             'C' : {'bint':'C','bstr':'D','blist':'E','bdict':'F'},
-             'D' : {'bint':'C','bstr':'D','blist':'E','bdict':'F'},
-             'E' : {'bint':'C','bstr':'D','blist':'E','bdict':'F'},
-             'F' : {'bint':'C','bstr':'D','blist':'E','bdict':'F'}}
-
-    state = 'A'
     inside_blist = False
 
     while True:
@@ -45,36 +37,37 @@ def val_blist(bcode, pointer):
         if char == 'l' and inside_blist == False:
             pointer += 1
             inside_blist = True
+
         elif char != 'l' and inside_blist == False:
             return {'result':False, 'pointer':pointer}
+
         elif char == 'e' and inside_blist == True:
             pointer += 1
             return {'result':True, 'pointer':pointer}
+
         else:
             bint = val_bint(bcode, pointer)
-            bstr = val_bstr(bcode, pointer)
-            blist = val_blist(bcode, pointer)
-            bdict = val_bdict(bcode, pointer)
-
             if bint['result']:
-                char = 'bint'
                 pointer = bint['pointer']
-            elif bstr['result']:
-                char = 'bstr'
-                pointer = bstr['pointer']
-            elif blist['result']:
-                char = 'blist'
-                pointer = blist['pointer']
-            elif bdict['result']:
-                char = 'bdict'
-                pointer = bdict['pointer']
-            else:
-                pass # RAISE ERROR
+                continue
 
-        try:
-            state = table[state][char]
-        except KeyError:
-            return {'result':False, 'pointer':pointer}
+            bstr = val_bstr(bcode, pointer)
+            if bstr['result']:
+                pointer = bstr['pointer']
+                continue
+
+            blist = val_blist(bcode, pointer)
+            if blist['result']:
+                pointer = blist['pointer']
+                continue
+
+            bdict = val_bdict(bcode, pointer)
+            if bdict['result']:
+                pointer = bdict['pointer']
+                continue
+
+            else:
+                return {'result':False, 'pointer':pointer}
 
 
 def val_bdict(bcode, pointer):
